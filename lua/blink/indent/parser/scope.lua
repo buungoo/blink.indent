@@ -38,9 +38,11 @@ function M.get_scope_partial(bufnr, winnr, indent_levels, range)
 
   -- move up and down to find the scope
   local scope_start_line = scope_search_start_line
-  while scope_start_line > range.start_line do
-    if scope_indent_level > indent_levels[scope_start_line - 1] then break end
-    scope_start_line = scope_start_line - 1
+  if not M.is_scope_opener_line(bufnr, scope_search_start_line) then
+    while scope_start_line > range.start_line do
+      if scope_indent_level > indent_levels[scope_start_line - 1] then break end
+      scope_start_line = scope_start_line - 1
+    end
   end
   local scope_end_line = scope_search_start_line
   while scope_end_line < range.end_line do
@@ -67,10 +69,12 @@ function M.get_scope(bufnr, winnr)
 
   -- move up and down to find the scope
   local scope_start_line = start_line
-  while scope_start_line > 1 do
-    local prev_indent_level, is_all_whitespace = M.get_line_indent_level(bufnr, scope_start_line - 1, shiftwidth)
-    if not is_all_whitespace and scope_indent_level > prev_indent_level then break end
-    scope_start_line = scope_start_line - 1
+  if not M.is_scope_opener_line(bufnr, start_line) then
+    while scope_start_line > 1 do
+      local prev_indent_level, is_all_whitespace = M.get_line_indent_level(bufnr, scope_start_line - 1, shiftwidth)
+      if not is_all_whitespace and scope_indent_level > prev_indent_level then break end
+      scope_start_line = scope_start_line - 1
+    end
   end
   local scope_end_line = start_line
   while scope_end_line < line_count do
