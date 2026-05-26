@@ -8,6 +8,23 @@ local config = require('blink.indent.config')
 
 local M = {}
 
+--- Prefer the current line as the scope start when it visibly opens a block, such as `foo = {`.
+--- This keeps the highlighted scope aligned with opener lines instead of immediately descending
+--- into the first child line.
+--- @param bufnr integer
+--- @param line_number integer
+--- @return boolean
+function M.is_scope_opener_line(bufnr, line_number)
+  local line = utils.get_line(bufnr, line_number)
+  if line == nil then return false end
+
+  local trimmed = vim.trim(line)
+  if trimmed == '' then return false end
+
+  local last_char = trimmed:sub(-1)
+  return last_char == '{' or last_char == '[' or last_char == '('
+end
+
 --- Gets the scope within the given range using the parsed indent levels
 --- @param bufnr integer
 --- @param winnr integer
@@ -109,7 +126,9 @@ function M.get_scope_start(bufnr, cursor_line, range, shiftwidth)
     scope_next_indent_level, next_is_all_whitespace = M.get_line_indent_level(bufnr, next_line, shiftwidth)
   end
 
-  -- start from the next line if its indent level its higher
+  -- start from the next line if its indent level is higher, unless the current line
+  -- itself is the visible block opener
+  if M.is_scope_opener_line(bufnr, cursor_line) then return cursor_line, scope_indent_level end
   if scope_next_indent_level > scope_indent_level then return cursor_line + 1, scope_next_indent_level end
   return cursor_line, scope_indent_level
 end
