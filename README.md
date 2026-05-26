@@ -69,6 +69,12 @@ require('blink.indent').setup({
     enabled = true, -- highlight highest level of indentation on the current line
     indent_at_cursor = false, -- clamp to indent level of cursor
     char = '▎',
+    chars = {
+      top = nil, -- e.g. '╭' to draw a corner on the first line of the active scope
+      right_arrow = nil, -- e.g. '─' to draw a horizontal arm on the first line of the active scope
+      bottom = nil, -- e.g. '╰' to draw a corner on the last line of the active scope
+      bottom_right_arrow = nil, -- e.g. '─' to draw a horizontal arm on the last line of the active scope
+    },
     priority = 1000,
     -- set this to a single highlight, such as 'BlinkIndent' to disable rainbow-style indent guides
     -- highlights = { 'BlinkIndentScope' },

@@ -32,12 +32,22 @@
 --- @field indent_at_cursor boolean Clamp to indent level of cursor
 --- @field ns integer Namespace of the extmarks used to draw the scope guides
 --- @field char '┆' | '┊' | '╎' | '║' | '▏' | '▎' | string Character used to draw the scope guides
+--- @field chars blink.indent.ScopeCharsConfig
 --- @field priority integer Priority of the extmarks used to draw the scope guides
 --- @field highlights string[] Highlight groups used to draw the scope guides
 --- @field underline blink.indent.ScopeUnderlineConfig
 
 --- @class (exact) blink.indent.ScopeConfigPartial : blink.indent.ScopeConfig, {}
+--- @field chars blink.indent.ScopeCharsConfigPartial
 --- @field underline blink.indent.ScopeUnderlineConfigPartial
+
+--- @class blink.indent.ScopeCharsConfig
+--- @field top string | nil Character used on the first line of the active scope instead of `scope.char`
+--- @field right_arrow string | nil Character repeated on the first line of the active scope from the scope guide to the code
+--- @field bottom string | nil Character used on the last line of the active scope instead of `scope.char`
+--- @field bottom_right_arrow string | nil Character repeated on the last line of the active scope from the scope guide to the code
+
+--- @class (exact) blink.indent.ScopeCharsConfigPartial : blink.indent.ScopeCharsConfig, {}
 
 --- @class blink.indent.ScopeUnderlineConfig
 --- @field enabled boolean
@@ -83,6 +93,12 @@ local config = {
     indent_at_cursor = false,
     ns = vim.api.nvim_create_namespace('blink.indent.scope'),
     char = '▎',
+    chars = {
+      top = nil,
+      right_arrow = nil,
+      bottom = nil,
+      bottom_right_arrow = nil,
+    },
     priority = 1000,
     highlights = { 'BlinkIndentOrange', 'BlinkIndentViolet', 'BlinkIndentBlue' },
     underline = {

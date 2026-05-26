@@ -42,8 +42,10 @@ function M.draw(winnr, bufnr, ns, indent_levels, scope_range, range)
   local hl_group = utils.get_rainbow_hl(indent_level - 1, config.scope.highlights)
 
   for i = scope_range.start_line, scope_range.end_line do
+    local virt_text = M.get_scope_symbol(bufnr, i, scope_range, win_col, symbol)
+
     vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, 0, {
-      virt_text = { { symbol, hl_group } },
+      virt_text = { { virt_text, hl_group } },
       virt_text_pos = 'overlay',
       virt_text_win_col = win_col,
       virt_text_repeat_linebreak = breakindent,
@@ -53,6 +55,62 @@ function M.draw(winnr, bufnr, ns, indent_levels, scope_range, range)
   end
 
   if config.scope.underline.enabled then M.draw_underline(bufnr, ns, indent_levels, scope_range) end
+end
+
+--- @param bufnr integer
+--- @param line_number integer
+--- @param scope_range blink.indent.ScopeRange
+--- @param win_col integer
+--- @param symbol string
+--- @return string
+function M.get_scope_symbol(bufnr, line_number, scope_range, win_col, symbol)
+  if line_number == scope_range.start_line then return M.get_scope_start_symbol(bufnr, line_number, win_col, symbol) end
+  if line_number == scope_range.end_line then return M.get_scope_end_symbol(bufnr, line_number, win_col, symbol) end
+  return symbol
+end
+
+--- @param bufnr integer
+--- @param line_number integer
+--- @param win_col integer
+--- @param symbol string
+--- @return string
+function M.get_scope_start_symbol(bufnr, line_number, win_col, symbol)
+  local right_arrow = config.scope.chars.right_arrow
+  local top = config.scope.chars.top or symbol
+  if right_arrow == nil or right_arrow == '' then return top end
+
+  local shiftwidth = utils.get_shiftwidth(bufnr)
+  local line = vim.api.nvim_buf_get_lines(bufnr, line_number - 1, line_number, false)[1] or ''
+  local whitespace_chars = line:match('^%s*') or ''
+  local whitespace_width = whitespace_chars:find('\t') ~= nil
+      and whitespace_chars:gsub('\t', (' '):rep(shiftwidth)):len()
+    or whitespace_chars:len()
+  local arrow_width = whitespace_width - win_col - 1
+
+  if arrow_width <= 0 then return top end
+  return top .. right_arrow:rep(arrow_width)
+end
+
+--- @param bufnr integer
+--- @param line_number integer
+--- @param win_col integer
+--- @param symbol string
+--- @return string
+function M.get_scope_end_symbol(bufnr, line_number, win_col, symbol)
+  local bottom_right_arrow = config.scope.chars.bottom_right_arrow
+  local bottom = config.scope.chars.bottom or symbol
+  if bottom_right_arrow == nil or bottom_right_arrow == '' then return bottom end
+
+  local shiftwidth = utils.get_shiftwidth(bufnr)
+  local line = vim.api.nvim_buf_get_lines(bufnr, line_number - 1, line_number, false)[1] or ''
+  local whitespace_chars = line:match('^%s*') or ''
+  local whitespace_width = whitespace_chars:find('\t') ~= nil
+      and whitespace_chars:gsub('\t', (' '):rep(shiftwidth)):len()
+    or whitespace_chars:len()
+  local arrow_width = whitespace_width - win_col - 1
+
+  if arrow_width <= 0 then return bottom end
+  return bottom .. bottom_right_arrow:rep(arrow_width)
 end
 
 function M.draw_underline(bufnr, ns, indent_levels, scope_range)
